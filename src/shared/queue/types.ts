@@ -1,11 +1,11 @@
 ﻿//shared/queue/types.ts
 
-import { CardanoBalance, TokenData } from '../../types/cardanoTypes';
-
+import type { CardanoBalance, TokenData } from '../../types/cardanoTypes';
 export interface QueueMessage<T> {
-  type: string;
+  type: 'balance' | 'token';  // Using literal types for better type safety
+  walletAddress: string;      // Using walletAddress consistently
   data: T;
-  timestamp: Date;
+  timestamp: Date;           // Using Date type for timestamp
 }
 
 export interface BalanceUpdate {
@@ -17,3 +17,4 @@ export interface TokenUpdate {
   address: string;
   tokens: TokenData[];
 }
+

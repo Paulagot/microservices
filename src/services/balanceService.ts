@@ -3,7 +3,7 @@
 import { CardanoMessageQueue } from "../shared/queue/messageQueue";
 import { RABBITMQ_CONFIG } from "../shared/queue/config";
 import type { QueueMessage, BalanceUpdate, TokenUpdate } from "../shared/queue/types";
-import { CardanoBalance } from '../types/cardanoTypes';
+import type { CardanoBalance } from '../types/cardanoTypes';
 
 /**
  * BalanceService handles messages related to balance updates using RabbitMQ.
@@ -29,9 +29,9 @@ export class BalanceService {
   private async setupConsumers(): Promise<void> {
     await this.messageQueue.consume(
       RABBITMQ_CONFIG.queues.balance,
-      async (message: QueueMessage<TokenUpdate>) => {
-        if (message.type === "TOKEN_UPDATE") {
-          await this.handleTokenUpdate(message.data);
+      async (message: QueueMessage<unknown>) => {
+        if (message.type === "token") {
+          await this.handleTokenUpdate(message.data as TokenUpdate);
         }
       }
     );
@@ -50,12 +50,16 @@ export class BalanceService {
    */
   async updateBalance(address: string, balances: CardanoBalance[]): Promise<void> {
     const message: QueueMessage<BalanceUpdate> = {
-      type: 'BALANCE_UPDATE',
-      data: { address, balances },
+      type: 'balance',
+      walletAddress: address,
+      data: { 
+        address, 
+        balances 
+      },
       timestamp: new Date()
     };
     console.log('Balance service publishing message:', JSON.stringify(message, null, 2));
-    await this.messageQueue.publish('token', message);
+    await this.messageQueue.publish('balance', message);
   }
 }
 

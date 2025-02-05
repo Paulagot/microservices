@@ -1,14 +1,22 @@
 // src/test-connection.ts
 
 // to run npx ts-node src/test-connection.ts
-
+// src/test-connection.ts
 
 import { BalanceService } from './services/balanceService';
 import { TokenService } from './services/tokenService';
+import axios from 'axios';
+import dotenv from 'dotenv';
 
-async function testConnection() {
+dotenv.config();
+
+const BALANCE_PORT = process.env.BALANCE_PORT || 5002;
+const TOKEN_PORT = process.env.TOKEN_PORT || 5003;
+
+
+async function testMessageQueue() {
   try {
-    console.log('Starting RabbitMQ connection test...');
+    console.log('\nStarting RabbitMQ connection test...');
 
     // Initialize services
     const balanceService = new BalanceService();
@@ -20,7 +28,7 @@ async function testConnection() {
       balanceService.init(),
       tokenService.init()
     ]);
-    console.log('Services initialized successfully');
+    console.log('✅ Services initialized successfully');
 
     // Test data
     const testAddress = 'addr1test123';
@@ -43,23 +51,43 @@ async function testConnection() {
     // Test message from Balance to Token service
     console.log('\nSending Balance -> Token message...');
     await balanceService.updateBalance(testAddress, testBalance);
-    console.log('Balance message sent');
+    console.log('✅ Balance message sent');
 
     // Test message from Token to Balance service
     console.log('\nSending Token -> Balance message...');
     await tokenService.updateTokens(testAddress, testTokens);
-    console.log('Token message sent');
+    console.log('✅ Token message sent');
 
-    // Keep the process running longer to ensure messages are processed
+    // Wait for message processing
     console.log('\nWaiting for messages to be processed...');
-    await new Promise(resolve => setTimeout(resolve, 10000));
+    await new Promise(resolve => setTimeout(resolve, 5000));
+
+    return true;
+  } catch (error) {
+    console.error('❌ Message Queue test failed:', error);
+    return false;
+  }
+}
+
+async function runAllTests() {
+  try {
+       //  test the message queue
+    const mqTestResult = await testMessageQueue();
+
+    console.log('\n=== Test Summary ===');
+    if (mqTestResult) {
+      console.log('✅ Message Queue: Passed');
+    } else {
+      console.log('❌ Message Queue: Failed');
+    }
 
     console.log('\nTest completed!');
-    process.exit(0);
+    process.exit(mqTestResult ? 0 : 1);
   } catch (error) {
     console.error('Test failed:', error);
     process.exit(1);
   }
 }
 
-testConnection().catch(console.error);
+// Run all tests
+runAllTests().catch(console.error);

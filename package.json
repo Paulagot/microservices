@@ -3,12 +3,22 @@
   "version": "1.0.0",
   "description": "Cardano microservice for fetching balances and tokens",
   "main": "dist/index.js",
-  "scripts": {
+  "scripts": {   
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+       
+    "test:balance": "jest balanceService.test.ts",
+    "test:token": "jest tokenServices.test.ts",
+    "test:all": "npm run test && npm run test:integration",
     "dev": "ts-node src/index.ts",
+    "dev:balance": "ts-node src/balanceService.ts",
+    "dev:token": "ts-node src/tokenService.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "test": "jest",
-    "test:coverage": "jest --coverage"
+    "start:balance": "node dist/balanceService.js",
+    "start:token": "node dist/tokenService.js",
+    "test:connection": "ts-node src/test-connection.ts",
+    "test:integration": "ts-node src/test-integration.ts"
   },
   "jest": {
     "preset": "ts-jest",

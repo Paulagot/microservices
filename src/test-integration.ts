@@ -5,8 +5,15 @@ import type { AxiosError } from 'axios';
 import { BalanceService } from './services/balanceService';
 import { TokenService } from './services/tokenService';
 import type { ApiResponse, BlockfrostAsset, TokenData } from './types/cardanoTypes';
+import dotenv from 'dotenv';
 
-const API_BASE_URL = 'http://localhost:5002/api/cardano';
+dotenv.config();
+
+const BALANCE_PORT = process.env.BALANCE_PORT || 5002;
+const TOKEN_PORT = process.env.TOKEN_PORT || 5003;
+
+const BALANCE_URL = `http://localhost:${BALANCE_PORT}/api/cardano`;
+const TOKEN_URL = `http://localhost:${TOKEN_PORT}/api/cardano`;
 
 async function testMultiTokenIntegration() {
   try {
@@ -22,35 +29,35 @@ async function testMultiTokenIntegration() {
     ]);
     console.log('Message queue services initialized\n');
 
-    // Test wallet address with multiple tokens
+    // Test wallet address
     const testAddress = 'addr_test1vz09v9yfxguvlp0zsnrpa3tdtm7el8xufp3m5lsm7qxzclgmzkket';
-    
+
     // Test the balance endpoint
     console.log('Testing balance endpoint...');
     try {
       const balanceResponse = await axios.get<ApiResponse<BlockfrostAsset[]>>(
-        `${API_BASE_URL}/balance/${testAddress}`
+        `${BALANCE_URL}/balance/${testAddress}`
       );
-      
+
       if (balanceResponse.data.success && balanceResponse.data.data) {
         const assets = balanceResponse.data.data;
         console.log(`Found ${assets.length} assets in wallet:`);
         console.log('Balance endpoint response:', JSON.stringify(assets, null, 2));
-        
+
         // Send balance update through message queue
         await balanceService.updateBalance(testAddress, assets);
         console.log('Balance update sent to message queue\n');
-        
+
         // Get metadata for each non-ADA token
         const nonAdaAssets = assets.filter(asset => asset.unit !== 'lovelace');
         console.log(`Processing ${nonAdaAssets.length} non-ADA tokens...\n`);
-        
+
         const tokenPromises = nonAdaAssets.map(async (asset) => {
           try {
             const tokenResponse = await axios.get<ApiResponse<{ symbol: string; name: string; image: string }>>(
-              `${API_BASE_URL}/tokens/${asset.unit}`
+              `${TOKEN_URL}/tokens/${asset.unit}`
             );
-            
+
             if (tokenResponse.data.success && tokenResponse.data.data) {
               return {
                 symbol: tokenResponse.data.data.symbol,
@@ -61,18 +68,21 @@ async function testMultiTokenIntegration() {
             }
           } catch (error) {
             const axiosError = error as AxiosError<ApiResponse<null>>;
-            console.error(`Error fetching metadata for token ${asset.unit}:`, 
-              axiosError.response?.data || axiosError.message);
+            console.error(
+              `Error fetching metadata for token ${asset.unit}:`,
+              axiosError.response?.data || axiosError.message
+            );
           }
           return null;
         });
 
-        const tokenDataArray = (await Promise.all(tokenPromises)).filter((token): token is TokenData => token !== null);
-        
+        const tokenDataArray = (await Promise.all(tokenPromises))
+          .filter((token): token is TokenData => token !== null);
+
         if (tokenDataArray.length > 0) {
-          console.log('Token metadata collected for all assets:', 
+          console.log('Token metadata collected for all assets:',
             JSON.stringify(tokenDataArray, null, 2));
-          
+
           // Send token update through message queue
           await tokenService.updateTokens(testAddress, tokenDataArray);
           console.log('Token updates sent to message queue\n');
