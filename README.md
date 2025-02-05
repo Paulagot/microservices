@@ -36,6 +36,9 @@ cd microservices-project
 Create a **.env** file in the root of the project and add the following:
 
 ```env
+PORT=5002
+BALANCE_PORT=5002
+TOKEN_PORT=5003
 BLOCKFROST_NETWORK=prepod  # or ??
 BLOCKFROST_API_KEY=your_blockfrost_api_key
 RABBITMQ_URL=amqp://localhost  # Update if using a remote RabbitMQ instance
@@ -68,18 +71,24 @@ Follow the official [RabbitMQ Installation Guide](https://www.rabbitmq.com/downl
 
 Each service runs independently. Open two terminal windows and run:
 
-#### Start Balance Service:
-
-```sh
-cd balance-service
-npm start
-```
-
 #### Start Token Metadata Service:
 
 ```sh
-cd token-service
-npm start
+npm run dev:token
+```
+
+#### Start Balance Service:
+
+```sh
+npm run dev:balance
+```
+
+You can also run both services together
+
+#### Start ALL Service:
+
+```sh
+npm run dev
 ```
 
 ### 6. Running Tests
@@ -91,14 +100,26 @@ Both **unit tests** and **integration tests** are included to validate functiona
 ```sh
 npm test
 ```
+#### Run Unit Tests:
+
+```sh
+npm run test:balance
+```
+
+```sh
+npm run test:token
+```
 
 #### Run Integration Tests:
 
 ```sh
+npm run test: connection
 npm run test:integration
 ```
 
 ### 7. API Endpoints
+
+Current setup  prefix = api/cardano
 
 | Service         | Endpoint                      | Description                                |
 | --------------- | ----------------------------- | ------------------------------------------ |
