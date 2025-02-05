@@ -1,5 +1,7 @@
 # Microservices Project
 
+Please see addational documentation.md
+
 ## Overview
 
 This project consists of two independent microservices that communicate asynchronously using **RabbitMQ**. The services fetch and process data from the **Cardano blockchain** using the **Blockfrost API**. By decoupling them, we ensure scalability, resilience, and fault tolerance.
@@ -39,7 +41,7 @@ Create a **.env** file in the root of the project and add the following:
 PORT=5002
 BALANCE_PORT=5002
 TOKEN_PORT=5003
-BLOCKFROST_NETWORK=prepod  # or ??
+BLOCKFROST_NETWORK=preprod  # Use "mainnet" or "testnet" if applicable
 BLOCKFROST_API_KEY=your_blockfrost_api_key
 RABBITMQ_URL=amqp://localhost  # Update if using a remote RabbitMQ instance
 ```
@@ -71,21 +73,21 @@ Follow the official [RabbitMQ Installation Guide](https://www.rabbitmq.com/downl
 
 Each service runs independently. Open two terminal windows and run:
 
-#### Start Token Metadata Service:
+#### Start Token Metadata Service
 
 ```sh
 npm run dev:token
 ```
 
-#### Start Balance Service:
+#### Start Balance Service
 
 ```sh
 npm run dev:balance
 ```
 
-You can also run both services together
+You can also run both services together:
 
-#### Start ALL Service:
+#### Start All Services
 
 ```sh
 npm run dev
@@ -95,36 +97,34 @@ npm run dev
 
 Both **unit tests** and **integration tests** are included to validate functionality and communication between services.
 
-#### Run All Tests:
+#### Run All Tests
 
 ```sh
 npm test
 ```
-#### Run Unit Tests:
+
+#### Run Unit Tests
 
 ```sh
 npm run test:balance
-```
-
-```sh
 npm run test:token
 ```
 
-#### Run Integration Tests:
+#### Run Integration Tests
 
 ```sh
-npm run test: connection
+npm run test:connection
 npm run test:integration
 ```
 
 ### 7. API Endpoints
 
-Current setup  prefix = api/cardano
+Current setup prefix = `/api/cardano`
 
 | Service         | Endpoint                      | Description                                |
 | --------------- | ----------------------------- | ------------------------------------------ |
-| Balance Service | `GET /balance/:walletAddress` | Fetches token balances for a given wallet. |
-| Token Service   | `GET /tokens/:assetId`        | Retrieves metadata for a specific token.   |
+| Balance Service | `GET /api/cardano/balance/:walletAddress` | Fetches token balances for a given wallet. |
+| Token Service   | `GET /api/cardano/tokens/:assetId`        | Retrieves metadata for a specific token.   |
 
 ### 8. Deployment Considerations
 
@@ -133,6 +133,3 @@ Current setup  prefix = api/cardano
 - **Implement logging and monitoring** to track message queue failures.
 
 ---
-
-This README provides everything needed to set up, run, and test the microservices. 
-
